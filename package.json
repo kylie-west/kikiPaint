@@ -1,0 +1,14 @@
+{
+	"name": "kikipaint",
+	"version": "1.0.0",
+	"description": "A simple drawing application.",
+	"main": "index.js",
+	"scripts": {
+		"compile:sass": "node-sass sass/main.scss css/style.css -w"
+	},
+	"author": "Kylie West",
+	"license": "ISC",
+	"devDependencies": {
+		"node-sass": "^5.0.0"
+	}
+}
