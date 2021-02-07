@@ -9,7 +9,7 @@ html {
 body {
   font-family: monospace;
   box-sizing: border-box;
-  background-color: cadetblue; }
+  background-color: #2e3033; }
 
 .container {
   position: relative;
@@ -18,7 +18,7 @@ body {
 .canvas__wrapper {
   background-color: white;
   width: 800px;
-  height: 600px;
+  height: 800px;
   position: absolute;
   top: 50vh;
   left: 50%;

@@ -10,5 +10,8 @@
 	"license": "ISC",
 	"devDependencies": {
 		"node-sass": "^5.0.0"
+	},
+	"dependencies": {
+		"simple-color-picker": "^1.0.4"
 	}
 }

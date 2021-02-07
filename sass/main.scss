@@ -11,7 +11,7 @@ html {
 body {
 	font-family: monospace;
 	box-sizing: border-box;
-	background-color: cadetblue;
+	background-color: #2e3033;
 }
 
 .container {
@@ -23,7 +23,7 @@ body {
 	&__wrapper {
 		background-color: white;
 		width: 800px;
-		height: 600px;
+		height: 800px;
 		position: absolute;
 		top: (0.5 * 100vh);
 		left: 50%;
