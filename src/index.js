@@ -1,8 +1,6 @@
-const { default: KikiPaint } = require("./KikiPaint");
-
 import KikiPaint from "./KikiPaint";
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("load", () => {
 	new KikiPaint({
 		canvasElement: document.getElementById("canvas"),
 		canvasWidth: 800,

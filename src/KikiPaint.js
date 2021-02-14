@@ -1,20 +1,33 @@
 import ColorPicker from "simple-color-picker";
-import Canvas from "./Canvas";
+import state from "./state";
 import BrushInfo from "./BrushInfo";
-import History from "./History";
-import Brush from "./brush";
+import brush from "./brush";
+import { getCanvas } from "./canvas";
+import history from "./history";
+
+const {
+	isDrawing,
+	canvas,
+	ctx,
+	currentBrushInfo,
+	currentStroke,
+	currentPoint,
+	lastPoint,
+	prevStrokes,
+	undoneStrokes,
+} = state;
 
 export default class KikiPaint {
 	constructor(options) {
-		this.canvasObj = new Canvas(
-			options.element,
-			options.element.clientWidth,
-			options.element.clientHeight
-		);
+		let self = this;
 
-		this.canvas = this.canvasObj.initCanvas();
-		this.canvasElement = this.canvas.element;
-		this.ctx = this.canvas.ctx;
+		isDrawing = false;
+
+		this.canvasObj = getCanvas(
+			options.canvasElement,
+			options.canvasWidth,
+			options.canvasHeight
+		);
 
 		this.colorPicker = new ColorPicker({
 			color: "#000000",
@@ -23,59 +36,41 @@ export default class KikiPaint {
 			height: 180,
 		});
 
-		this.history = new History();
-
-		this.isDrawing = false;
-		this.currentBrushInfo = new BrushInfo();
-		this.currentStroke = {};
-		this.currentPoint = {};
-		this.lastPoint = {};
-
-		this.initEventListeners();
+		this.init();
 	}
 
-	static setIsDrawing = (value) => {
-		this.isDrawing = value;
-	};
+	init() {
+		canvas = this.canvasObj.canvas;
+		ctx = this.canvasObj.ctx;
+		currentBrushInfo = new BrushInfo();
+		currentStroke = {};
+		currentPoint = {};
+		lastPoint = {};
+		prevStrokes = [];
+		undoneStrokes = [];
 
-	static setCurrentBrushInfo = (value) => {
-		this.currentBrushInfo = value;
-	};
-
-	static setCurrentPoint = (value) => {
-		this.currentPoint = value;
-	};
-
-	static setLastPoint = (value) => {
-		this.lastPoint = value;
-	};
-
-	initEventListeners() {
-		colorPicker.onChange(() => {
+		this.colorPicker.onChange(() => {
 			let newColor = colorPicker.getHexString();
-			this.ctx.fillStyle = newColor;
-			this.setState(currentBrushInfo, {
-				...this.state.currentBrushInfo,
+			ctx.fillStyle = newColor;
+			currentBrushInfo = {
+				...currentBrushInfo,
 				color: newColor,
-			});
+			};
 		});
 
-		this.canvasElement.addEventListener("pointerdown", (e) => {
-			this.state.isDrawing = true;
-			Brush.onPointerDown(e, this.canvasElement, this.canvasContext);
-		});
-		this.canvasElement.addEventListener("pointermove", onPointerMove);
-		this.canvasElement.addEventListener("pointerup", onPointerUp);
+		canvas.addEventListener("pointerdown", brush.onPointerDown);
+		canvas.addEventListener("pointermove", brush.onPointerMove);
+		canvas.addEventListener("pointerup", brush.onPointerUp);
 
 		window.addEventListener("keydown", (e) => {
 			if (e.ctrlKey && e.code == "KeyZ") {
-				undoStroke();
+				history.undoStroke();
 			}
 		});
 
 		window.addEventListener("keydown", (e) => {
 			if (e.ctrlKey && e.code == "KeyY") {
-				redoStroke();
+				history.redoStroke();
 			}
 		});
 	}

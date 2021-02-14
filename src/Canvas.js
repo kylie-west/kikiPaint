@@ -1,17 +1,9 @@
-export default class Canvas {
-	constructor(htmlElement, width, height) {
-		this.htmlElement = htmlElement;
-		this.width = width;
-		this.height = height;
-	}
+export function getCanvas(htmlElement, width, height) {
+	const canvas = htmlElement;
+	const ctx = canvas.getContext("2d");
+	canvas.width = width * 2;
+	canvas.height = height * 2;
+	ctx.scale(2, 2);
 
-	initCanvas() {
-		const canvas = document.getElementById(this.htmlElement);
-		const ctx = canvas.getContext("2d");
-		canvas.width = this.width * 2;
-		canvas.height = this.height * 2;
-		ctx.scale(2, 2);
-
-		return { element: canvas, ctx };
-	}
+	return { canvas, ctx };
 }

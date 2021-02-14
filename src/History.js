@@ -1,63 +1,76 @@
-export default class History {
-	constructor() {
-		this.prevStrokes = [];
-		this.undoneStrokes = [];
-		this.currentStroke = { brushInfo: null, points: null };
-	}
+import state from "./state";
 
-	static setCurrentStroke;
+const {
+	prevStrokes,
+	undoneStrokes,
+	currentStroke,
+	canvas,
+	ctx,
+	currentBrushInfo,
+} = state;
 
-	addPointToStroke(x, y) {
+const history = (() => {
+	function addPointToStroke(x, y) {
 		const point = [x, y];
-		this.currentStroke.points.push(point);
+		currentStroke.points.push(point);
 	}
 
-	addStrokeToHistory(stroke) {
-		this.prevStrokes.push(stroke);
+	function addStrokeToHistory(stroke) {
+		prevStrokes.push(stroke);
 	}
 
-	static clearCanvas(canvasContext) {
-		canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+	function clearCanvas() {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
 	}
 
-	redrawCanvas(currBrushInfo, canvasContext) {
-		if (this.prevStrokes.length > 0) {
-			this.prevStrokes.forEach((stroke) => {
-				let selectedColor = currBrushInfo.color;
-				let width = stroke.brushInfo.width;
+	function redrawCanvas() {
+		if (prevStrokes.length > 0) {
+			prevStrokes.forEach((stroke) => {
+				let selectedColor = currentBrushInfo.color;
+				let size = stroke.brushInfo.size;
 				let strokeColor = stroke.brushInfo.color;
 
-				canvasContext.fillStyle = strokeColor;
+				ctx.fillStyle = strokeColor;
 
 				stroke.points.forEach((point) => {
 					let x = point[0];
 					let y = point[1];
-					drawCircle(ctx, x, y, width);
+					drawCircle(ctx, x, y, size);
 				});
 
-				canvasContext.fillStyle = selectedColor;
+				ctx.fillStyle = selectedColor;
 			});
 		}
 	}
 
-	undoStroke() {
+	function undoStroke() {
 		if (prevStrokes.length > 0) {
 			const undoneStroke = prevStrokes.pop();
-			this.undoneStrokes.push(undoneStroke);
-			this.clearCanvas();
-			this.redrawCanvas();
+			undoneStrokes.push(undoneStroke);
+			clearCanvas();
+			redrawCanvas();
 		}
 
 		console.log(`Undone strokes:`);
-		console.log(this.undoneStrokes);
+		console.log(undoneStrokes);
 	}
 
-	redoStroke() {
+	function redoStroke() {
 		if (undoneStrokes.length > 0) {
 			const strokeToRedo = undoneStrokes.pop();
-			this.prevStrokes.push(strokeToRedo);
-			this.clearCanvas();
-			this.redrawCanvas();
+			prevStrokes.push(strokeToRedo);
+			clearCanvas();
+			redrawCanvas();
 		} else return;
 	}
-}
+
+	return {
+		addPointToStroke,
+		addStrokeToHistory,
+		undoStroke,
+		redoStroke,
+		clearCanvas,
+	};
+})();
+
+export default history;

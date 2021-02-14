@@ -1,49 +1,88 @@
-import KikiPaint from "./KikiPaint";
-import History from "./History";
+import BrushInfo from "./BrushInfo";
+import state from "./state";
+import history from "./history";
 
-export default class Brush {
-	constructor(canvas, ctx) {
-		this.canvas = canvas;
-		this.ctx = ctx;
-	}
+const {
+	canvas,
+	currentPoint,
+	lastPoint,
+	currentStroke,
+	currentBrushInfo,
+} = state;
 
-	static distanceBetween(point1, point2) {
+const brush = (function () {
+	function distanceBetween(point1, point2) {
 		return Math.sqrt(
 			Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2)
 		);
 	}
 
-	static angleBetween(point1, point2) {
+	function angleBetween(point1, point2) {
 		return Math.atan2(point2.x - point1.x, point2.y - point1.y);
 	}
 
-	static getPointerPositionOnCanvas(pointerEvent, canvas) {
+	function getPointerPositionOnCanvas(e) {
 		const rect = canvas.getBoundingClientRect();
-		const x = pointerEvent.pageX - rect.left - window.pageXOffset;
-		const y = pointerEvent.pageY - rect.top - window.pageYOffset;
+		const x = e.pageX - rect.left - window.pageXOffset;
+		const y = e.pageY - rect.top - window.pageYOffset;
 
 		return { x, y };
 	}
 
-	static drawCircle(context, x, y, radius) {
+	function drawCircle(context, x, y, radius) {
 		context.beginPath();
 		context.arc(x, y, radius, false, Math.PI * 2);
 		context.closePath();
 		context.fill();
 	}
 
-	static onPointerDown(e, canvas, context) {
-		const { setIsDrawing, setLastPoint } = KikiPaint;
-		const { setCurrentStroke } = History;
+	function onPointerDown(e) {
 		isDrawing = true;
-		const { x, y } = this.getPointerPositionOnCanvas(e, canvas);
+		const { x, y } = getPointerPositionOnCanvas(e);
 
 		lastPoint = { x, y };
 
 		currentStroke.points = [];
-		currentStroke.brushInfo = Object.assign({}, currentBrushInfo);
+		currentStroke.brushInfo = new BrushInfo(currentBrushInfo);
 
-		this.drawCircle(context, x, y, currentBrushInfo.width);
-		addPointToStroke(x, y);
+		drawCircle(ctx, x, y, currentBrushInfo.size);
+		history.addPointToStroke(x, y);
 	}
-}
+
+	function onPointerMove(e) {
+		if (!isDrawing) return;
+
+		const { x, y } = getPointerPositionOnCanvas(e);
+		currentPoint = { x, y };
+
+		let dist = distanceBetween(lastPoint, currentPoint);
+		let angle = angleBetween(lastPoint, currentPoint);
+		let spacing = currentBrushInfo.spacing;
+
+		// Paints in between points to prevent gaps when drawing quickly
+		for (let i = 0; i < dist; i += spacing) {
+			let _x = lastPoint.x + Math.sin(angle) * i;
+			let _y = lastPoint.y + Math.cos(angle) * i;
+
+			drawCircle(ctx, _x, _y, currentBrushInfo.size);
+			history.addPointToStroke(_x, _y);
+		}
+
+		lastPoint = currentPoint;
+	}
+
+	function onPointerUp() {
+		isDrawing = false;
+		currentPoint = {};
+		strokePaths.push(currentStroke);
+		undoneStrokes.length = 0;
+		currentStroke = {};
+
+		console.log(`Stroke history:`);
+		console.log(strokePaths);
+	}
+
+	return { onPointerDown, onPointerMove, onPointerUp };
+})();
+
+export default brush;

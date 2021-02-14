@@ -425,196 +425,424 @@ var u = function () {
 });
 var _default = u;
 exports.default = _default;
-},{}],"src/app.js":[function(require,module,exports) {
+},{}],"src/state.js":[function(require,module,exports) {
 "use strict";
 
-var _simpleColorPicker = _interopRequireDefault(require("simple-color-picker"));
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+/* 
+    isDrawing - bool
+    canvas - obj
+    ctx - obj
+    currentBrushInfo - obj
+    currentStroke - obj
+    currentPoint - obj
+    lastPoint - obj
+    prevStrokes - arr
+    undoneStrokes - arr
+*/
+var state = {
+  isDrawing: isDrawing,
+  canvas: canvas,
+  ctx: ctx,
+  currentBrushInfo: currentBrushInfo,
+  currentStroke: currentStroke,
+  currentPoint: currentPoint,
+  lastPoint: lastPoint,
+  prevStrokes: prevStrokes,
+  undoneStrokes: undoneStrokes
+};
+var _default = state;
+exports.default = _default;
+},{}],"src/BrushInfo.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var BrushInfo = /*#__PURE__*/function () {
+  function BrushInfo(properties) {
+    _classCallCheck(this, BrushInfo);
+
+    _defineProperty(this, "HARD_ROUND_BRUSH", "HARD_ROUND_BRUSH");
+
+    _defineProperty(this, "defaults", {
+      color: "#000000",
+      size: 1,
+      spacing: 1,
+      opacity: 1.0,
+      type: this.HARD_ROUND_BRUSH
+    });
+
+    for (propName in this.defaults) {
+      if (this.defaults.hasOwnProperty(propName)) {
+        this[propName] = this.defaults[propName];
+      }
+    }
+
+    for (propName in properties) {
+      if (properties.hasOwnProperty(propName)) {
+        this[propName] = properties[propName];
+      }
+    }
+  } // Brush types
+
+
+  _createClass(BrushInfo, [{
+    key: "setColor",
+    value: function setColor(canvasContext, color) {
+      canvasContext.fillStyle = color;
+    }
+  }]);
+
+  return BrushInfo;
+}();
+
+exports.default = BrushInfo;
+},{}],"src/history.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _state = _interopRequireDefault(require("./state"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// Set up canvas
-var canvas = document.getElementById("canvas");
-var ctx = canvas.getContext("2d");
-canvas.width = 800 * 2;
-canvas.height = 800 * 2;
-ctx.scale(2, 2);
-ctx.fillStyle = "#000";
-var colorPicker = new _simpleColorPicker.default({
-  color: "#000000",
-  el: document.getElementById("color-picker"),
-  width: 180,
-  height: 180
-});
-var isDrawing = false;
-var currentPoint = {};
-var lastPoint = {};
-var strokePaths = [];
-var undoneStrokes = []; // Set default brush info
+var prevStrokes = _state.default.prevStrokes,
+    undoneStrokes = _state.default.undoneStrokes,
+    currentStroke = _state.default.currentStroke,
+    canvas = _state.default.canvas,
+    ctx = _state.default.ctx,
+    currentBrushInfo = _state.default.currentBrushInfo;
 
-var currentBrushInfo = {
-  style: "pencil",
-  color: "#000000",
-  width: 1
-}; // Information about the stroke currently being drawn
-
-var currentStroke = {
-  points: [],
-  brushInfo: {
-    style: null,
-    color: null,
-    width: null
-  }
-};
-
-function distanceBetween(point1, point2) {
-  return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
-}
-
-function angleBetween(point1, point2) {
-  return Math.atan2(point2.x - point1.x, point2.y - point1.y);
-}
-
-function getPointerPositionOnCanvas(pointerEvent) {
-  var rect = canvas.getBoundingClientRect();
-  var x = pointerEvent.pageX - rect.left - window.pageXOffset;
-  var y = pointerEvent.pageY - rect.top - window.pageYOffset;
-  return {
-    x: x,
-    y: y
-  };
-}
-
-function drawCircle(context, x, y, radius) {
-  context.beginPath();
-  context.arc(x, y, radius, false, Math.PI * 2);
-  context.closePath();
-  context.fill();
-}
-
-function onPointerDown(e) {
-  isDrawing = true;
-
-  var _getPointerPositionOn = getPointerPositionOnCanvas(e),
-      x = _getPointerPositionOn.x,
-      y = _getPointerPositionOn.y;
-
-  lastPoint = {
-    x: x,
-    y: y
-  };
-  currentStroke.points = [];
-  currentStroke.brushInfo = Object.assign({}, currentBrushInfo);
-  drawCircle(ctx, x, y, currentBrushInfo.width);
-  addPointToStroke(x, y);
-}
-
-function onPointerMove(e) {
-  if (!isDrawing) return;
-
-  var _getPointerPositionOn2 = getPointerPositionOnCanvas(e),
-      x = _getPointerPositionOn2.x,
-      y = _getPointerPositionOn2.y;
-
-  currentPoint = {
-    x: x,
-    y: y
-  };
-  var dist = distanceBetween(lastPoint, currentPoint);
-  var angle = angleBetween(lastPoint, currentPoint);
-  var spacing = 2; // Paints in between points to prevent gaps when drawing quickly
-
-  for (var i = 0; i < dist; i += spacing) {
-    var _x = lastPoint.x + Math.sin(angle) * i;
-
-    var _y = lastPoint.y + Math.cos(angle) * i;
-
-    drawCircle(ctx, _x, _y, currentBrushInfo.width);
-    addPointToStroke(_x, _y);
+var history = function () {
+  function addPointToStroke(x, y) {
+    var point = [x, y];
+    currentStroke.points.push(point);
   }
 
-  lastPoint = currentPoint;
-}
+  function addStrokeToHistory(stroke) {
+    prevStrokes.push(stroke);
+  }
 
-function onPointerUp() {
-  isDrawing = false;
-  currentPoint = {};
-  strokePaths.push(currentStroke); // Records stroke in stroke history array
+  function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
 
-  undoneStrokes.length = 0;
-  currentStroke = {};
-  console.log("Stroke history:");
-  console.log(strokePaths);
-}
-
-function addPointToStroke(x, y) {
-  var point = [x, y];
-  currentStroke.points.push(point);
-}
-
-function clearCanvas() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-} // Redraws the canvas using strokePaths array
-
-
-function redrawCanvas() {
-  if (strokePaths.length > 0) {
-    strokePaths.forEach(function (stroke) {
-      var selectedColor = currentBrushInfo.color;
-      var width = stroke.brushInfo.width;
-      var strokeColor = stroke.brushInfo.color;
-      ctx.fillStyle = strokeColor; // Loops through all the points in the stroke and redraws each one using the brush settings recorded in the stroke object
-
-      stroke.points.forEach(function (point) {
-        var x = point[0];
-        var y = point[1];
-        drawCircle(ctx, x, y, width);
+  function redrawCanvas() {
+    if (prevStrokes.length > 0) {
+      prevStrokes.forEach(function (stroke) {
+        var selectedColor = currentBrushInfo.color;
+        var size = stroke.brushInfo.size;
+        var strokeColor = stroke.brushInfo.color;
+        ctx.fillStyle = strokeColor;
+        stroke.points.forEach(function (point) {
+          var x = point[0];
+          var y = point[1];
+          drawCircle(ctx, x, y, size);
+        });
+        ctx.fillStyle = selectedColor;
       });
-      ctx.fillStyle = selectedColor;
+    }
+  }
+
+  function undoStroke() {
+    if (prevStrokes.length > 0) {
+      var undoneStroke = prevStrokes.pop();
+      undoneStrokes.push(undoneStroke);
+      clearCanvas();
+      redrawCanvas();
+    }
+
+    console.log("Undone strokes:");
+    console.log(undoneStrokes);
+  }
+
+  function redoStroke() {
+    if (undoneStrokes.length > 0) {
+      var strokeToRedo = undoneStrokes.pop();
+      prevStrokes.push(strokeToRedo);
+      clearCanvas();
+      redrawCanvas();
+    } else return;
+  }
+
+  return {
+    addPointToStroke: addPointToStroke,
+    addStrokeToHistory: addStrokeToHistory,
+    undoStroke: undoStroke,
+    redoStroke: redoStroke,
+    clearCanvas: clearCanvas
+  };
+}();
+
+var _default = history;
+exports.default = _default;
+},{"./state":"src/state.js"}],"src/brush.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _BrushInfo = _interopRequireDefault(require("./BrushInfo"));
+
+var _state = _interopRequireDefault(require("./state"));
+
+var _history = _interopRequireDefault(require("./history"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _readOnlyError(name) { throw new TypeError("\"" + name + "\" is read-only"); }
+
+var canvas = _state.default.canvas,
+    currentPoint = _state.default.currentPoint,
+    lastPoint = _state.default.lastPoint,
+    currentStroke = _state.default.currentStroke,
+    currentBrushInfo = _state.default.currentBrushInfo;
+
+var brush = function () {
+  function distanceBetween(point1, point2) {
+    return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
+  }
+
+  function angleBetween(point1, point2) {
+    return Math.atan2(point2.x - point1.x, point2.y - point1.y);
+  }
+
+  function getPointerPositionOnCanvas(e) {
+    var rect = canvas.getBoundingClientRect();
+    var x = e.pageX - rect.left - window.pageXOffset;
+    var y = e.pageY - rect.top - window.pageYOffset;
+    return {
+      x: x,
+      y: y
+    };
+  }
+
+  function drawCircle(context, x, y, radius) {
+    context.beginPath();
+    context.arc(x, y, radius, false, Math.PI * 2);
+    context.closePath();
+    context.fill();
+  }
+
+  function onPointerDown(e) {
+    isDrawing = true;
+
+    var _getPointerPositionOn = getPointerPositionOnCanvas(e),
+        x = _getPointerPositionOn.x,
+        y = _getPointerPositionOn.y;
+
+    lastPoint = (_readOnlyError("lastPoint"), {
+      x: x,
+      y: y
     });
-  }
-} // Removes most recent stroke from strokePaths, places into undoneStrokes array, then redraws canvas using the updated history
+    currentStroke.points = [];
+    currentStroke.brushInfo = new _BrushInfo.default(currentBrushInfo);
+    drawCircle(ctx, x, y, currentBrushInfo.size);
 
-
-function undoStroke() {
-  if (strokePaths.length > 0) {
-    var undoneStroke = strokePaths.pop();
-    undoneStrokes.push(undoneStroke);
-    clearCanvas();
-    redrawCanvas();
+    _history.default.addPointToStroke(x, y);
   }
 
-  console.log("Undone strokes:");
-  console.log(undoneStrokes);
+  function onPointerMove(e) {
+    if (!isDrawing) return;
+
+    var _getPointerPositionOn2 = getPointerPositionOnCanvas(e),
+        x = _getPointerPositionOn2.x,
+        y = _getPointerPositionOn2.y;
+
+    currentPoint = (_readOnlyError("currentPoint"), {
+      x: x,
+      y: y
+    });
+    var dist = distanceBetween(lastPoint, currentPoint);
+    var angle = angleBetween(lastPoint, currentPoint);
+    var spacing = currentBrushInfo.spacing; // Paints in between points to prevent gaps when drawing quickly
+
+    for (var i = 0; i < dist; i += spacing) {
+      var _x = lastPoint.x + Math.sin(angle) * i;
+
+      var _y = lastPoint.y + Math.cos(angle) * i;
+
+      drawCircle(ctx, _x, _y, currentBrushInfo.size);
+
+      _history.default.addPointToStroke(_x, _y);
+    }
+
+    lastPoint = (_readOnlyError("lastPoint"), currentPoint);
+  }
+
+  function onPointerUp() {
+    isDrawing = false;
+    currentPoint = (_readOnlyError("currentPoint"), {});
+    strokePaths.push(currentStroke);
+    undoneStrokes.length = 0;
+    currentStroke = (_readOnlyError("currentStroke"), {});
+    console.log("Stroke history:");
+    console.log(strokePaths);
+  }
+
+  return {
+    onPointerDown: onPointerDown,
+    onPointerMove: onPointerMove,
+    onPointerUp: onPointerUp
+  };
+}();
+
+var _default = brush;
+exports.default = _default;
+},{"./BrushInfo":"src/BrushInfo.js","./state":"src/state.js","./history":"src/history.js"}],"src/canvas.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getCanvas = getCanvas;
+
+function getCanvas(htmlElement, width, height) {
+  var canvas = htmlElement;
+  var ctx = canvas.getContext("2d");
+  canvas.width = width * 2;
+  canvas.height = height * 2;
+  ctx.scale(2, 2);
+  return {
+    canvas: canvas,
+    ctx: ctx
+  };
 }
+},{}],"src/KikiPaint.js":[function(require,module,exports) {
+"use strict";
 
-function redoStroke() {
-  if (undoneStrokes.length > 0) {
-    var strokeToRedo = undoneStrokes.pop();
-    strokePaths.push(strokeToRedo);
-    clearCanvas();
-    redrawCanvas();
-  } else return;
-} // Event listeners
-
-
-canvas.addEventListener("pointerdown", onPointerDown);
-canvas.addEventListener("pointermove", onPointerMove);
-canvas.addEventListener("pointerup", onPointerUp);
-colorPicker.onChange(function () {
-  ctx.fillStyle = colorPicker.getHexString();
-  currentBrushInfo.color = colorPicker.getHexString();
+Object.defineProperty(exports, "__esModule", {
+  value: true
 });
-window.addEventListener("keydown", function (e) {
-  if (e.ctrlKey && e.code == "KeyZ") {
-    undoStroke();
+exports.default = void 0;
+
+var _simpleColorPicker = _interopRequireDefault(require("simple-color-picker"));
+
+var _state = _interopRequireDefault(require("./state"));
+
+var _BrushInfo = _interopRequireDefault(require("./BrushInfo"));
+
+var _brush = _interopRequireDefault(require("./brush"));
+
+var _canvas = require("./canvas");
+
+var _history = _interopRequireDefault(require("./history"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _readOnlyError(name) { throw new TypeError("\"" + name + "\" is read-only"); }
+
+var isDrawing = _state.default.isDrawing,
+    canvas = _state.default.canvas,
+    ctx = _state.default.ctx,
+    currentBrushInfo = _state.default.currentBrushInfo,
+    currentStroke = _state.default.currentStroke,
+    currentPoint = _state.default.currentPoint,
+    lastPoint = _state.default.lastPoint,
+    prevStrokes = _state.default.prevStrokes,
+    undoneStrokes = _state.default.undoneStrokes;
+
+var KikiPaint = /*#__PURE__*/function () {
+  function KikiPaint(options) {
+    _classCallCheck(this, KikiPaint);
+
+    var self = this;
+    isDrawing = (_readOnlyError("isDrawing"), false);
+    this.canvasObj = (0, _canvas.getCanvas)(options.canvasElement, options.canvasWidth, options.canvasHeight);
+    this.colorPicker = new _simpleColorPicker.default({
+      color: "#000000",
+      el: document.getElementById("color-picker"),
+      width: 180,
+      height: 180
+    });
+    this.init();
   }
+
+  _createClass(KikiPaint, [{
+    key: "init",
+    value: function init() {
+      canvas = (_readOnlyError("canvas"), this.canvasObj.canvas);
+      ctx = (_readOnlyError("ctx"), this.canvasObj.ctx);
+      currentBrushInfo = (_readOnlyError("currentBrushInfo"), new _BrushInfo.default());
+      currentStroke = (_readOnlyError("currentStroke"), {});
+      currentPoint = (_readOnlyError("currentPoint"), {});
+      lastPoint = (_readOnlyError("lastPoint"), {});
+      prevStrokes = (_readOnlyError("prevStrokes"), []);
+      undoneStrokes = (_readOnlyError("undoneStrokes"), []);
+      this.colorPicker.onChange(function () {
+        var newColor = colorPicker.getHexString();
+        ctx.fillStyle = newColor;
+        currentBrushInfo = (_readOnlyError("currentBrushInfo"), _objectSpread(_objectSpread({}, currentBrushInfo), {}, {
+          color: newColor
+        }));
+      });
+      canvas.addEventListener("pointerdown", _brush.default.onPointerDown);
+      canvas.addEventListener("pointermove", _brush.default.onPointerMove);
+      canvas.addEventListener("pointerup", _brush.default.onPointerUp);
+      window.addEventListener("keydown", function (e) {
+        if (e.ctrlKey && e.code == "KeyZ") {
+          _history.default.undoStroke();
+        }
+      });
+      window.addEventListener("keydown", function (e) {
+        if (e.ctrlKey && e.code == "KeyY") {
+          _history.default.redoStroke();
+        }
+      });
+    }
+  }]);
+
+  return KikiPaint;
+}();
+
+exports.default = KikiPaint;
+},{"simple-color-picker":"node_modules/simple-color-picker/dist/simple-color-picker.module.js","./state":"src/state.js","./BrushInfo":"src/BrushInfo.js","./brush":"src/brush.js","./canvas":"src/canvas.js","./history":"src/history.js"}],"src/index.js":[function(require,module,exports) {
+"use strict";
+
+var _KikiPaint = _interopRequireDefault(require("./KikiPaint"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+document.addEventListener("load", function () {
+  new _KikiPaint.default({
+    canvasElement: document.getElementById("canvas"),
+    canvasWidth: 800,
+    canvasHeight: 800
+  });
 });
-window.addEventListener("keydown", function (e) {
-  if (e.ctrlKey && e.code == "KeyY") {
-    redoStroke();
-  }
-});
-},{"simple-color-picker":"node_modules/simple-color-picker/dist/simple-color-picker.module.js"}],"../../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./KikiPaint":"src/KikiPaint.js"}],"../../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -642,7 +870,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52557" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52392" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
@@ -818,5 +1046,5 @@ function hmrAcceptRun(bundle, id) {
     return true;
   }
 }
-},{}]},{},["../../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","src/app.js"], null)
-//# sourceMappingURL=/app.a6a4d504.js.map
+},{}]},{},["../../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","src/index.js"], null)
+//# sourceMappingURL=/src.a2b27638.js.map
