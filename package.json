@@ -13,6 +13,8 @@
 		"node-sass": "^5.0.0"
 	},
 	"dependencies": {
-		"simple-color-picker": "^1.0.4"
+		"auto-bind": "^4.0.0",
+		"simple-color-picker": "^1.0.4",
+		"state": "^0.2.0"
 	}
 }

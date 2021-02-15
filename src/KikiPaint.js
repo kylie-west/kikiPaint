@@ -1,77 +1,27 @@
-import ColorPicker from "simple-color-picker";
-import state from "./state";
+import autoBind from "auto-bind";
 import BrushInfo from "./BrushInfo";
-import brush from "./brush";
-import { getCanvas } from "./canvas";
-import history from "./history";
-
-const {
-	isDrawing,
-	canvas,
-	ctx,
-	currentBrushInfo,
-	currentStroke,
-	currentPoint,
-	lastPoint,
-	prevStrokes,
-	undoneStrokes,
-} = state;
+import MainGUI from "./MainGUI";
 
 export default class KikiPaint {
 	constructor(options) {
-		let self = this;
+		this.parentElement = options.parentElement;
+		this.width = options.width;
+		this.height = options.height;
 
-		isDrawing = false;
+		this.isDrawing = false;
+		this.currentBrushInfo = new BrushInfo();
 
-		this.canvasObj = getCanvas(
-			options.canvasElement,
-			options.canvasWidth,
-			options.canvasHeight
-		);
+		this.MainGUI = new MainGUI(this);
 
-		this.colorPicker = new ColorPicker({
-			color: "#000000",
-			el: document.getElementById("color-picker"),
-			width: 180,
-			height: 180,
-		});
-
-		this.init();
+		autoBind(this);
 	}
 
-	init() {
-		canvas = this.canvasObj.canvas;
-		ctx = this.canvasObj.ctx;
-		currentBrushInfo = new BrushInfo();
-		currentStroke = {};
-		currentPoint = {};
-		lastPoint = {};
-		prevStrokes = [];
-		undoneStrokes = [];
+	setCurrentBrushInfo(brushInfo) {
+		this.currentBrushInfo = brushInfo;
+		return this.currentBrushInfo;
+	}
 
-		this.colorPicker.onChange(() => {
-			let newColor = colorPicker.getHexString();
-			ctx.fillStyle = newColor;
-			currentBrushInfo = {
-				...currentBrushInfo,
-				color: newColor,
-			};
-		});
-
-		canvas.addEventListener("pointerdown", brush.onPointerDown);
-		canvas.addEventListener("pointermove", brush.onPointerMove);
-		canvas.addEventListener("pointerup", brush.onPointerUp);
-
-		window.addEventListener("keydown", (e) => {
-			if (e.ctrlKey && e.code == "KeyZ") {
-				history.undoStroke();
-			}
-		});
-
-		window.addEventListener("keydown", (e) => {
-			if (e.ctrlKey && e.code == "KeyY") {
-				history.redoStroke();
-			}
-		});
+	getCurrentBrushInfo() {
+		return this.currentBrushInfo;
 	}
 }

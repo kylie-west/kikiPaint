@@ -117,7 +117,403 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"node_modules/simple-color-picker/dist/simple-color-picker.module.js":[function(require,module,exports) {
+})({"node_modules/auto-bind/index.js":[function(require,module,exports) {
+'use strict'; // Gets all non-builtin properties up the prototype chain
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return; var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e2) { throw _e2; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e3) { didErr = true; err = _e3; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+var getAllProperties = function getAllProperties(object) {
+  var properties = new Set();
+
+  do {
+    var _iterator = _createForOfIteratorHelper(Reflect.ownKeys(object)),
+        _step;
+
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var key = _step.value;
+        properties.add([object, key]);
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+  } while ((object = Reflect.getPrototypeOf(object)) && object !== Object.prototype);
+
+  return properties;
+};
+
+module.exports = function (self) {
+  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+      include = _ref.include,
+      exclude = _ref.exclude;
+
+  var filter = function filter(key) {
+    var match = function match(pattern) {
+      return typeof pattern === 'string' ? key === pattern : pattern.test(key);
+    };
+
+    if (include) {
+      return include.some(match);
+    }
+
+    if (exclude) {
+      return !exclude.some(match);
+    }
+
+    return true;
+  };
+
+  var _iterator2 = _createForOfIteratorHelper(getAllProperties(self.constructor.prototype)),
+      _step2;
+
+  try {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+      var _step2$value = _slicedToArray(_step2.value, 2),
+          object = _step2$value[0],
+          key = _step2$value[1];
+
+      if (key === 'constructor' || !filter(key)) {
+        continue;
+      }
+
+      var descriptor = Reflect.getOwnPropertyDescriptor(object, key);
+
+      if (descriptor && typeof descriptor.value === 'function') {
+        self[key] = self[key].bind(self);
+      }
+    }
+  } catch (err) {
+    _iterator2.e(err);
+  } finally {
+    _iterator2.f();
+  }
+
+  return self;
+};
+},{}],"src/BrushInfo.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var BrushInfo = function BrushInfo(properties) {
+  _classCallCheck(this, BrushInfo);
+
+  // Brush types
+  var HARD_ROUND_BRUSH = "HARD_ROUND_BRUSH"; // SOFT_ROUND_BRUSH = "SOFT_ROUND_BRUSH";
+  // HARD_ERASER = "HARD_ERASER";
+  // SOFT_ERASER = "SOFT_ERASER";
+  // FILL = "FILL";
+
+  var defaults = {
+    color: "#000000",
+    size: 1,
+    spacing: 1,
+    opacity: 1.0,
+    type: HARD_ROUND_BRUSH
+  };
+
+  for (var propName in defaults) {
+    if (defaults.hasOwnProperty(propName)) {
+      this[propName] = defaults[propName];
+    }
+  }
+
+  for (var _propName in properties) {
+    if (properties.hasOwnProperty(_propName)) {
+      this[_propName] = properties[_propName];
+    }
+  }
+};
+
+exports.default = BrushInfo;
+},{}],"src/Canvas.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _autoBind = _interopRequireDefault(require("auto-bind"));
+
+var _BrushInfo = _interopRequireDefault(require("./BrushInfo"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var Canvas = /*#__PURE__*/function () {
+  function Canvas(controller) {
+    _classCallCheck(this, Canvas);
+
+    _defineProperty(this, "canvasWrapper", void 0);
+
+    _defineProperty(this, "canvas", void 0);
+
+    _defineProperty(this, "ctx", void 0);
+
+    this.controller = controller;
+    this.currentStroke = {};
+    this.currentPoint = {};
+    this.lastPoint = {};
+    this.prevStrokes = [];
+    this.undoneStrokes = [];
+    (0, _autoBind.default)(this);
+    this.makeCanvas();
+  }
+
+  _createClass(Canvas, [{
+    key: "addPointToStroke",
+    value: function addPointToStroke(x, y) {
+      var point = [x, y];
+      this.currentStroke.points.push(point);
+      return this.currentStroke;
+    }
+  }, {
+    key: "addStrokeToHistory",
+    value: function addStrokeToHistory(stroke) {
+      this.prevStrokes.push(stroke);
+      return this.prevStrokes;
+    }
+  }, {
+    key: "distanceBetween",
+    value: function distanceBetween(point1, point2) {
+      return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
+    }
+  }, {
+    key: "angleBetween",
+    value: function angleBetween(point1, point2) {
+      return Math.atan2(point2.x - point1.x, point2.y - point1.y);
+    }
+  }, {
+    key: "getPointerPositionOnCanvas",
+    value: function getPointerPositionOnCanvas(e) {
+      var rect = this.canvas.getBoundingClientRect();
+      var x = e.pageX - rect.left - window.pageXOffset;
+      var y = e.pageY - rect.top - window.pageYOffset;
+      return {
+        x: x,
+        y: y
+      };
+    }
+  }, {
+    key: "drawCircle",
+    value: function drawCircle(x, y, radius) {
+      this.ctx.beginPath();
+      this.ctx.arc(x, y, radius, false, Math.PI * 2);
+      this.ctx.closePath();
+      this.ctx.fill();
+    }
+  }, {
+    key: "handlePointerDown",
+    value: function handlePointerDown(e) {
+      this.isDrawing = true;
+
+      var _this$getPointerPosit = this.getPointerPositionOnCanvas(e),
+          x = _this$getPointerPosit.x,
+          y = _this$getPointerPosit.y;
+
+      this.lastPoint = {
+        x: x,
+        y: y
+      };
+      var currBrushInfo = this.controller.getCurrentBrushInfo();
+      this.currentStroke = {
+        points: [],
+        brushInfo: new _BrushInfo.default(currBrushInfo)
+      };
+      this.drawCircle(x, y, currBrushInfo.size * 0.5);
+      this.addPointToStroke(x, y);
+    }
+  }, {
+    key: "handlePointerMove",
+    value: function handlePointerMove(e) {
+      var _this = this;
+
+      if (!this.isDrawing) return;
+
+      var _this$getPointerPosit2 = this.getPointerPositionOnCanvas(e),
+          x = _this$getPointerPosit2.x,
+          y = _this$getPointerPosit2.y;
+
+      this.currentPoint = {
+        x: x,
+        y: y
+      };
+      var dist = this.distanceBetween(this.lastPoint, this.currentPoint);
+      var angle = this.angleBetween(this.lastPoint, this.currentPoint);
+      var currBrushInfo = this.controller.getCurrentBrushInfo();
+      var spacing = currBrushInfo.spacing; // Paints in between points to prevent gaps when drawing quickly
+
+      for (var i = 0; i < dist; i += spacing) {
+        var _x = _this.lastPoint.x + Math.sin(angle) * i;
+
+        var _y = _this.lastPoint.y + Math.cos(angle) * i;
+
+        this.drawCircle(_x, _y, currBrushInfo.size * 0.5);
+
+        _this.addPointToStroke(_x, _y);
+      }
+
+      this.lastPoint = this.currentPoint;
+    }
+  }, {
+    key: "handlePointerUp",
+    value: function handlePointerUp() {
+      this.isDrawing = false;
+      this.currentPoint = {};
+      this.lastPoint = {};
+      this.prevStrokes.push(this.currentStroke);
+      this.undoneStrokes.length = 0;
+      this.currentStroke = {};
+      console.log("Stroke history:");
+      console.log(this.prevStrokes);
+    }
+  }, {
+    key: "setCurrentColor",
+    value: function setCurrentColor(color) {
+      this.ctx.fillStyle = color;
+      var brushInfo = this.controller.getCurrentBrushInfo();
+      this.controller.setCurrentBrushInfo(_objectSpread(_objectSpread({}, brushInfo), {}, {
+        color: color
+      }));
+    }
+  }, {
+    key: "clearCanvas",
+    value: function clearCanvas() {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+  }, {
+    key: "redrawCanvas",
+    value: function redrawCanvas() {
+      var currBrushInfo = this.controller.getCurrentBrushInfo(),
+          lastSelectedColor = currBrushInfo.color,
+          _this = this;
+
+      if (this.prevStrokes.length > 0) {
+        _this.prevStrokes.forEach(function (stroke) {
+          var size = stroke.brushInfo.size * 0.5,
+              strokeColor = stroke.brushInfo.color;
+          _this.ctx.fillStyle = strokeColor;
+          stroke.points.forEach(function (point) {
+            var x = point[0],
+                y = point[1];
+
+            _this.drawCircle(x, y, size);
+          });
+        });
+      }
+
+      this.ctx.fillStyle = lastSelectedColor;
+    }
+  }, {
+    key: "undoStroke",
+    value: function undoStroke() {
+      var _this = this;
+
+      if (this.prevStrokes.length > 0) {
+        var undoneStroke = _this.prevStrokes.pop();
+
+        _this.undoneStrokes.push(undoneStroke);
+
+        _this.clearCanvas();
+
+        _this.redrawCanvas();
+      }
+
+      console.log("Undone strokes:");
+      console.log(this.undoneStrokes);
+    }
+  }, {
+    key: "redoStroke",
+    value: function redoStroke() {
+      var _this = this;
+
+      if (this.undoneStrokes.length > 0) {
+        var strokeToRedo = _this.undoneStrokes.pop();
+
+        _this.prevStrokes.push(strokeToRedo);
+
+        _this.clearCanvas();
+
+        _this.redrawCanvas();
+      } else return;
+    }
+  }, {
+    key: "makeCanvas",
+    value: function makeCanvas() {
+      console.log(this.controller);
+
+      var _this = this;
+
+      var _this$controller = this.controller,
+          width = _this$controller.width,
+          height = _this$controller.height,
+          parentElement = _this$controller.parentElement;
+      this.canvasWrapper = document.createElement("div");
+      this.canvas = document.createElement("canvas");
+      this.ctx = this.canvas.getContext("2d");
+      this.canvasWrapper.className = "canvas__wrapper";
+      this.canvasWrapper.style.width = "".concat(width, "px");
+      this.canvasWrapper.style.height = "".concat(height, "px");
+      this.canvasWrapper.style.backgroundColor = "#FFFFFF";
+      this.canvas.width = width * 2;
+      this.canvas.height = height * 2;
+      this.canvas.style.width = "".concat(width, "px");
+      this.canvas.style.height = "".concat(height, "px");
+      this.ctx.scale(2, 2);
+      this.canvasWrapper.appendChild(this.canvas);
+      parentElement.appendChild(this.canvasWrapper);
+      this.canvas.addEventListener("pointerdown", this.handlePointerDown);
+      this.canvas.addEventListener("pointermove", this.handlePointerMove);
+      this.canvas.addEventListener("pointerup", this.handlePointerUp);
+      window.addEventListener("keydown", function (e) {
+        if (e.ctrlKey && e.code == "KeyZ") {
+          _this.undoStroke();
+        }
+      });
+      window.addEventListener("keydown", function (e) {
+        if (e.ctrlKey && e.code == "KeyY") {
+          _this.redoStroke();
+        }
+      });
+    }
+  }]);
+
+  return Canvas;
+}();
+
+exports.default = Canvas;
+},{"auto-bind":"node_modules/auto-bind/index.js","./BrushInfo":"src/BrushInfo.js"}],"node_modules/simple-color-picker/dist/simple-color-picker.module.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -425,7 +821,7 @@ var u = function () {
 });
 var _default = u;
 exports.default = _default;
-},{}],"src/state.js":[function(require,module,exports) {
+},{}],"src/MainGUI.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -433,394 +829,83 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-/* 
-    isDrawing - bool
-    canvas - obj
-    ctx - obj
-    currentBrushInfo - obj
-    currentStroke - obj
-    currentPoint - obj
-    lastPoint - obj
-    prevStrokes - arr
-    undoneStrokes - arr
-*/
-var state = {
-  isDrawing: isDrawing,
-  canvas: canvas,
-  ctx: ctx,
-  currentBrushInfo: currentBrushInfo,
-  currentStroke: currentStroke,
-  currentPoint: currentPoint,
-  lastPoint: lastPoint,
-  prevStrokes: prevStrokes,
-  undoneStrokes: undoneStrokes
-};
-var _default = state;
-exports.default = _default;
-},{}],"src/BrushInfo.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-var BrushInfo = /*#__PURE__*/function () {
-  function BrushInfo(properties) {
-    _classCallCheck(this, BrushInfo);
-
-    _defineProperty(this, "HARD_ROUND_BRUSH", "HARD_ROUND_BRUSH");
-
-    _defineProperty(this, "defaults", {
-      color: "#000000",
-      size: 1,
-      spacing: 1,
-      opacity: 1.0,
-      type: this.HARD_ROUND_BRUSH
-    });
-
-    for (propName in this.defaults) {
-      if (this.defaults.hasOwnProperty(propName)) {
-        this[propName] = this.defaults[propName];
-      }
-    }
-
-    for (propName in properties) {
-      if (properties.hasOwnProperty(propName)) {
-        this[propName] = properties[propName];
-      }
-    }
-  } // Brush types
-
-
-  _createClass(BrushInfo, [{
-    key: "setColor",
-    value: function setColor(canvasContext, color) {
-      canvasContext.fillStyle = color;
-    }
-  }]);
-
-  return BrushInfo;
-}();
-
-exports.default = BrushInfo;
-},{}],"src/history.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _state = _interopRequireDefault(require("./state"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var prevStrokes = _state.default.prevStrokes,
-    undoneStrokes = _state.default.undoneStrokes,
-    currentStroke = _state.default.currentStroke,
-    canvas = _state.default.canvas,
-    ctx = _state.default.ctx,
-    currentBrushInfo = _state.default.currentBrushInfo;
-
-var history = function () {
-  function addPointToStroke(x, y) {
-    var point = [x, y];
-    currentStroke.points.push(point);
-  }
-
-  function addStrokeToHistory(stroke) {
-    prevStrokes.push(stroke);
-  }
-
-  function clearCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
-
-  function redrawCanvas() {
-    if (prevStrokes.length > 0) {
-      prevStrokes.forEach(function (stroke) {
-        var selectedColor = currentBrushInfo.color;
-        var size = stroke.brushInfo.size;
-        var strokeColor = stroke.brushInfo.color;
-        ctx.fillStyle = strokeColor;
-        stroke.points.forEach(function (point) {
-          var x = point[0];
-          var y = point[1];
-          drawCircle(ctx, x, y, size);
-        });
-        ctx.fillStyle = selectedColor;
-      });
-    }
-  }
-
-  function undoStroke() {
-    if (prevStrokes.length > 0) {
-      var undoneStroke = prevStrokes.pop();
-      undoneStrokes.push(undoneStroke);
-      clearCanvas();
-      redrawCanvas();
-    }
-
-    console.log("Undone strokes:");
-    console.log(undoneStrokes);
-  }
-
-  function redoStroke() {
-    if (undoneStrokes.length > 0) {
-      var strokeToRedo = undoneStrokes.pop();
-      prevStrokes.push(strokeToRedo);
-      clearCanvas();
-      redrawCanvas();
-    } else return;
-  }
-
-  return {
-    addPointToStroke: addPointToStroke,
-    addStrokeToHistory: addStrokeToHistory,
-    undoStroke: undoStroke,
-    redoStroke: redoStroke,
-    clearCanvas: clearCanvas
-  };
-}();
-
-var _default = history;
-exports.default = _default;
-},{"./state":"src/state.js"}],"src/brush.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _BrushInfo = _interopRequireDefault(require("./BrushInfo"));
-
-var _state = _interopRequireDefault(require("./state"));
-
-var _history = _interopRequireDefault(require("./history"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _readOnlyError(name) { throw new TypeError("\"" + name + "\" is read-only"); }
-
-var canvas = _state.default.canvas,
-    currentPoint = _state.default.currentPoint,
-    lastPoint = _state.default.lastPoint,
-    currentStroke = _state.default.currentStroke,
-    currentBrushInfo = _state.default.currentBrushInfo;
-
-var brush = function () {
-  function distanceBetween(point1, point2) {
-    return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
-  }
-
-  function angleBetween(point1, point2) {
-    return Math.atan2(point2.x - point1.x, point2.y - point1.y);
-  }
-
-  function getPointerPositionOnCanvas(e) {
-    var rect = canvas.getBoundingClientRect();
-    var x = e.pageX - rect.left - window.pageXOffset;
-    var y = e.pageY - rect.top - window.pageYOffset;
-    return {
-      x: x,
-      y: y
-    };
-  }
-
-  function drawCircle(context, x, y, radius) {
-    context.beginPath();
-    context.arc(x, y, radius, false, Math.PI * 2);
-    context.closePath();
-    context.fill();
-  }
-
-  function onPointerDown(e) {
-    isDrawing = true;
-
-    var _getPointerPositionOn = getPointerPositionOnCanvas(e),
-        x = _getPointerPositionOn.x,
-        y = _getPointerPositionOn.y;
-
-    lastPoint = (_readOnlyError("lastPoint"), {
-      x: x,
-      y: y
-    });
-    currentStroke.points = [];
-    currentStroke.brushInfo = new _BrushInfo.default(currentBrushInfo);
-    drawCircle(ctx, x, y, currentBrushInfo.size);
-
-    _history.default.addPointToStroke(x, y);
-  }
-
-  function onPointerMove(e) {
-    if (!isDrawing) return;
-
-    var _getPointerPositionOn2 = getPointerPositionOnCanvas(e),
-        x = _getPointerPositionOn2.x,
-        y = _getPointerPositionOn2.y;
-
-    currentPoint = (_readOnlyError("currentPoint"), {
-      x: x,
-      y: y
-    });
-    var dist = distanceBetween(lastPoint, currentPoint);
-    var angle = angleBetween(lastPoint, currentPoint);
-    var spacing = currentBrushInfo.spacing; // Paints in between points to prevent gaps when drawing quickly
-
-    for (var i = 0; i < dist; i += spacing) {
-      var _x = lastPoint.x + Math.sin(angle) * i;
-
-      var _y = lastPoint.y + Math.cos(angle) * i;
-
-      drawCircle(ctx, _x, _y, currentBrushInfo.size);
-
-      _history.default.addPointToStroke(_x, _y);
-    }
-
-    lastPoint = (_readOnlyError("lastPoint"), currentPoint);
-  }
-
-  function onPointerUp() {
-    isDrawing = false;
-    currentPoint = (_readOnlyError("currentPoint"), {});
-    strokePaths.push(currentStroke);
-    undoneStrokes.length = 0;
-    currentStroke = (_readOnlyError("currentStroke"), {});
-    console.log("Stroke history:");
-    console.log(strokePaths);
-  }
-
-  return {
-    onPointerDown: onPointerDown,
-    onPointerMove: onPointerMove,
-    onPointerUp: onPointerUp
-  };
-}();
-
-var _default = brush;
-exports.default = _default;
-},{"./BrushInfo":"src/BrushInfo.js","./state":"src/state.js","./history":"src/history.js"}],"src/canvas.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.getCanvas = getCanvas;
-
-function getCanvas(htmlElement, width, height) {
-  var canvas = htmlElement;
-  var ctx = canvas.getContext("2d");
-  canvas.width = width * 2;
-  canvas.height = height * 2;
-  ctx.scale(2, 2);
-  return {
-    canvas: canvas,
-    ctx: ctx
-  };
-}
-},{}],"src/KikiPaint.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
+var _Canvas = _interopRequireDefault(require("./Canvas"));
 
 var _simpleColorPicker = _interopRequireDefault(require("simple-color-picker"));
 
-var _state = _interopRequireDefault(require("./state"));
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var MainGUI = function MainGUI(controller) {
+  var _this2 = this;
+
+  _classCallCheck(this, MainGUI);
+
+  this.controller = controller;
+  this.canvas = new _Canvas.default(controller);
+  this.colorPicker = new _simpleColorPicker.default({
+    color: "#000000",
+    el: document.getElementById("color-picker"),
+    width: 180,
+    height: 180
+  });
+
+  var _this = this;
+
+  this.colorPicker.onChange(function () {
+    var newColor = _this2.colorPicker.getHexString();
+
+    _this.canvas.setCurrentColor(newColor);
+  });
+};
+
+exports.default = MainGUI;
+},{"./Canvas":"src/Canvas.js","simple-color-picker":"node_modules/simple-color-picker/dist/simple-color-picker.module.js"}],"src/KikiPaint.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _autoBind = _interopRequireDefault(require("auto-bind"));
 
 var _BrushInfo = _interopRequireDefault(require("./BrushInfo"));
 
-var _brush = _interopRequireDefault(require("./brush"));
-
-var _canvas = require("./canvas");
-
-var _history = _interopRequireDefault(require("./history"));
+var _MainGUI = _interopRequireDefault(require("./MainGUI"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _readOnlyError(name) { throw new TypeError("\"" + name + "\" is read-only"); }
-
-var isDrawing = _state.default.isDrawing,
-    canvas = _state.default.canvas,
-    ctx = _state.default.ctx,
-    currentBrushInfo = _state.default.currentBrushInfo,
-    currentStroke = _state.default.currentStroke,
-    currentPoint = _state.default.currentPoint,
-    lastPoint = _state.default.lastPoint,
-    prevStrokes = _state.default.prevStrokes,
-    undoneStrokes = _state.default.undoneStrokes;
 
 var KikiPaint = /*#__PURE__*/function () {
   function KikiPaint(options) {
     _classCallCheck(this, KikiPaint);
 
-    var self = this;
-    isDrawing = (_readOnlyError("isDrawing"), false);
-    this.canvasObj = (0, _canvas.getCanvas)(options.canvasElement, options.canvasWidth, options.canvasHeight);
-    this.colorPicker = new _simpleColorPicker.default({
-      color: "#000000",
-      el: document.getElementById("color-picker"),
-      width: 180,
-      height: 180
-    });
-    this.init();
+    this.parentElement = options.parentElement;
+    this.width = options.width;
+    this.height = options.height;
+    this.isDrawing = false;
+    this.currentBrushInfo = new _BrushInfo.default();
+    this.MainGUI = new _MainGUI.default(this);
+    (0, _autoBind.default)(this);
   }
 
   _createClass(KikiPaint, [{
-    key: "init",
-    value: function init() {
-      canvas = (_readOnlyError("canvas"), this.canvasObj.canvas);
-      ctx = (_readOnlyError("ctx"), this.canvasObj.ctx);
-      currentBrushInfo = (_readOnlyError("currentBrushInfo"), new _BrushInfo.default());
-      currentStroke = (_readOnlyError("currentStroke"), {});
-      currentPoint = (_readOnlyError("currentPoint"), {});
-      lastPoint = (_readOnlyError("lastPoint"), {});
-      prevStrokes = (_readOnlyError("prevStrokes"), []);
-      undoneStrokes = (_readOnlyError("undoneStrokes"), []);
-      this.colorPicker.onChange(function () {
-        var newColor = colorPicker.getHexString();
-        ctx.fillStyle = newColor;
-        currentBrushInfo = (_readOnlyError("currentBrushInfo"), _objectSpread(_objectSpread({}, currentBrushInfo), {}, {
-          color: newColor
-        }));
-      });
-      canvas.addEventListener("pointerdown", _brush.default.onPointerDown);
-      canvas.addEventListener("pointermove", _brush.default.onPointerMove);
-      canvas.addEventListener("pointerup", _brush.default.onPointerUp);
-      window.addEventListener("keydown", function (e) {
-        if (e.ctrlKey && e.code == "KeyZ") {
-          _history.default.undoStroke();
-        }
-      });
-      window.addEventListener("keydown", function (e) {
-        if (e.ctrlKey && e.code == "KeyY") {
-          _history.default.redoStroke();
-        }
-      });
+    key: "setCurrentBrushInfo",
+    value: function setCurrentBrushInfo(brushInfo) {
+      this.currentBrushInfo = brushInfo;
+      return this.currentBrushInfo;
+    }
+  }, {
+    key: "getCurrentBrushInfo",
+    value: function getCurrentBrushInfo() {
+      return this.currentBrushInfo;
     }
   }]);
 
@@ -828,18 +913,18 @@ var KikiPaint = /*#__PURE__*/function () {
 }();
 
 exports.default = KikiPaint;
-},{"simple-color-picker":"node_modules/simple-color-picker/dist/simple-color-picker.module.js","./state":"src/state.js","./BrushInfo":"src/BrushInfo.js","./brush":"src/brush.js","./canvas":"src/canvas.js","./history":"src/history.js"}],"src/app.js":[function(require,module,exports) {
+},{"auto-bind":"node_modules/auto-bind/index.js","./BrushInfo":"src/BrushInfo.js","./MainGUI":"src/MainGUI.js"}],"src/app.js":[function(require,module,exports) {
 "use strict";
 
 var _KikiPaint = _interopRequireDefault(require("./KikiPaint"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-document.addEventListener("load", function () {
+window.addEventListener("DOMContentLoaded", function () {
   new _KikiPaint.default({
-    canvasElement: document.getElementById("canvas"),
-    canvasWidth: 800,
-    canvasHeight: 800
+    parentElement: document.querySelector(".canvas__container"),
+    width: 800,
+    height: 800
   });
 });
 },{"./KikiPaint":"src/KikiPaint.js"}],"../../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
@@ -870,7 +955,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52752" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58219" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

@@ -1,9 +1,9 @@
 import KikiPaint from "./KikiPaint";
 
-document.addEventListener("load", () => {
+window.addEventListener("DOMContentLoaded", () => {
 	new KikiPaint({
-		canvasElement: document.getElementById("canvas"),
-		canvasWidth: 800,
-		canvasHeight: 800,
+		parentElement: document.querySelector(".canvas__container"),
+		width: 800,
+		height: 800,
 	});
 });
